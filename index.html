@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#7A111A">
 <title>Mafia</title>
-<meta name="description" content="Join a Mafia party game hosted on an iPhone, right from your browser.">
+<meta name="description" content="Mafia, the party game of trust and lies. Download it for Android, or join a game from your browser.">
 <style>
   :root {
     --bg: #F2F2F7; --card: #FFFFFF; --fill: #E9E9EE; --text: #000; --muted: #6C6C70;
@@ -31,6 +31,14 @@
   ol { padding-left: 20px; margin: 6px 0 0; }
   li { margin: 6px 0; }
   code { font-family: ui-monospace, Menlo, monospace; background: var(--fill); padding: 1px 6px; border-radius: 6px; }
+  .dl { display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; }
+  .dl .icon { width: 52px; height: 52px; border-radius: 13px; display: grid; place-items: center; font-size: 28px; flex: none; }
+  .dl .grow { flex: 1; min-width: 0; }
+  .btn { display: block; text-align: center; text-decoration: none; font-weight: 600; border-radius: 14px; padding: 14px; margin-top: 12px; background: var(--accent); color: #fff; }
+  .btn.green { background: #2E9E4F; }
+  .soon { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 10px; background: var(--fill); color: var(--muted); }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; color: var(--accent); font-size: 14px; }
   footer { text-align: center; font-size: 12px; color: var(--muted); margin-top: 20px; }
 </style>
 </head>
@@ -46,8 +54,32 @@
     <button id="openNow">Open the game</button>
   </div>
 
+  <div class="card">
+    <div class="dl">
+      <div class="icon" style="background:#E8F5EC">🤖</div>
+      <div class="grow"><h2>Android</h2><p class="muted" style="margin:0">Android 8 or newer · host or join games</p></div>
+    </div>
+    <a class="btn green" href="https://github.com/agent-mech/mafia/releases/latest/download/Mafia.apk">Download APK</a>
+    <details>
+      <summary>How to install</summary>
+      <ol class="muted">
+        <li>Tap <b>Download APK</b> and open the file when it finishes.</li>
+        <li>If Android asks, allow your browser to <b>install unknown apps</b>, then go back and tap Install.</li>
+        <li>Open Mafia. Allow notifications and nearby devices when you host.</li>
+      </ol>
+    </details>
+  </div>
+
+  <div class="card">
+    <div class="dl">
+      <div class="icon" style="background:#E7F0FD">📱</div>
+      <div class="grow"><h2>iPhone <span class="soon">COMING SOON</span></h2><p class="muted" style="margin:0">iOS 15 or newer · host or join games</p></div>
+    </div>
+    <p class="muted">The iPhone app is on its way to the App Store. Until then, iPhone players can join any game from Safari below. No app needed.</p>
+  </div>
+
   <form class="card" id="form">
-    <h2>Join a game</h2>
+    <h2>Join in the browser</h2>
     <p class="muted">Play in the browser, no app needed. The game runs on the host's iPhone.</p>
     <label for="address">Host address</label>
     <input id="address" inputmode="decimal" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="192.168.1.23">
@@ -66,10 +98,10 @@
 
   <div class="card">
     <h2>Hosting</h2>
-    <p class="muted">Only the Mafia app can host a game. Players can join with the app or from this page.</p>
+    <p class="muted">Hosting needs the Mafia app. Everyone else can join with the app or from this page, on any phone.</p>
   </div>
 
-  <footer>Everything stays on your local network. This page never sees the game.</footer>
+  <footer>Games run on your local network. This page never sees them.</footer>
 </main>
 <script>
 'use strict';
