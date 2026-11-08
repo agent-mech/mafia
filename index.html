@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7A111A">
+<title>Mafia</title>
+<meta name="description" content="Join a Mafia party game hosted on an iPhone, right from your browser.">
+<style>
+  :root {
+    --bg: #F2F2F7; --card: #FFFFFF; --fill: #E9E9EE; --text: #000; --muted: #6C6C70;
+    --accent: #0A84FF; --red: #B3202A;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #000; --card: #1C1C1E; --fill: #2C2C2E; --text: #FFF; --muted: #98989F; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font: 17px -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 480px; margin: 0 auto; padding: calc(24px + env(safe-area-inset-top)) 16px 32px; }
+  .logo { font-size: 72px; text-align: center; margin: 12px 0 0; }
+  h1 { font-family: "New York", Georgia, serif; font-size: 44px; text-align: center; margin: 0; }
+  .tag { text-align: center; color: var(--muted); margin: 4px 0 24px; }
+  .card { background: var(--card); border-radius: 18px; padding: 16px; margin-bottom: 12px; }
+  .card h2 { margin: 0 0 6px; font-size: 18px; }
+  .muted { color: var(--muted); font-size: 14px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 6px; }
+  input { font: inherit; width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; background: var(--fill); color: var(--text); }
+  button { font: inherit; font-weight: 600; width: 100%; border: 0; border-radius: 14px; padding: 14px; margin-top: 12px; background: var(--accent); color: #fff; cursor: pointer; }
+  button:disabled { opacity: .4; }
+  .err { color: var(--red); font-size: 14px; min-height: 18px; margin-top: 8px; }
+  ol { padding-left: 20px; margin: 6px 0 0; }
+  li { margin: 6px 0; }
+  code { font-family: ui-monospace, Menlo, monospace; background: var(--fill); padding: 1px 6px; border-radius: 6px; }
+  footer { text-align: center; font-size: 12px; color: var(--muted); margin-top: 20px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="logo">🎩</div>
+  <h1>Mafia</h1>
+  <p class="tag">A game of trust, lies and nightfall.</p>
+
+  <div class="card" id="opening" hidden>
+    <h2>Opening the game…</h2>
+    <p class="muted" id="openingText"></p>
+    <button id="openNow">Open the game</button>
+  </div>
+
+  <form class="card" id="form">
+    <h2>Join a game</h2>
+    <p class="muted">Play in the browser, no app needed. The game runs on the host's iPhone.</p>
+    <label for="address">Host address</label>
+    <input id="address" inputmode="decimal" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="192.168.1.23">
+    <div class="err" id="err"></div>
+    <button type="submit">Join</button>
+  </form>
+
+  <div class="card">
+    <h2>How to join</h2>
+    <ol class="muted">
+      <li>Connect to the <b>same Wi-Fi</b> as the host, or to the host's personal hotspot.</li>
+      <li>On the host's iPhone, find the <b>Address</b> under Room in the lobby, for example <code>192.168.1.23:47777</code>.</li>
+      <li>Type it above and tap Join. Or skip all this and scan the host's QR code with your camera.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>Hosting</h2>
+    <p class="muted">Only the Mafia app can host a game. Players can join with the app or from this page.</p>
+  </div>
+
+  <footer>Everything stays on your local network. This page never sees the game.</footer>
+</main>
+<script>
+'use strict';
+// GitHub Pages is https-only, and browsers block an https page from opening ws:// to a phone on the
+// local network. So this page only finds the host and hands over to the web player the host serves
+// itself over http (port 47780), which then talks to the room on the game port (47777).
+const WEB_PORT = 47780;
+const GAME_PORT = 47777;
+
+function parse(text) {
+  let t = (text || '').trim().replace(/^[a-z]+:\/\//i, '').replace(/\/.*$/, '');
+  if (!t) return null;
+  let host = t, port = GAME_PORT;
+  const m = t.match(/^(.+):(\d{1,5})$/);
+  if (m) { host = m[1]; port = Number(m[2]); }
+  const ipv4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(host);
+  if (ipv4 && ipv4.slice(1).some((n) => Number(n) > 255)) return null;
+  if (!ipv4 && !/^[a-z0-9-]+(\.[a-z0-9-]+)*$/i.test(host)) return null;
+  if (!port || port > 65535) return null;
+  return { host, port };
+}
+
+function playerUrl({ host, port }, code) {
+  const q = new URLSearchParams({ ws: String(port) });
+  if (code) q.set('code', code);
+  return `http://${host}:${WEB_PORT}/?${q}`;
+}
+
+function go(target, code) {
+  try { localStorage.setItem('mafia-host', `${target.host}:${target.port}`); } catch {}
+  location.href = playerUrl(target, code);
+}
+
+// Links like …/mafia/?host=192.168.1.23&port=47777&code=ABC123 open the game straight away.
+const params = new URLSearchParams(location.search || location.hash.slice(1));
+const linked = params.get('host') && parse(`${params.get('host')}:${params.get('port') || GAME_PORT}`);
+if (linked) {
+  const url = playerUrl(linked, params.get('code'));
+  document.getElementById('opening').hidden = false;
+  document.getElementById('openingText').textContent = `Connecting to the host at ${linked.host}. If nothing happens, check that you are on the same Wi-Fi as the host.`;
+  document.getElementById('openNow').onclick = () => go(linked, params.get('code'));
+  setTimeout(() => go(linked, params.get('code')), 600);
+}
+
+const input = document.getElementById('address');
+try { input.value = localStorage.getItem('mafia-host') || ''; } catch {}
+document.getElementById('form').onsubmit = (e) => {
+  e.preventDefault();
+  const target = parse(input.value);
+  document.getElementById('err').textContent = target ? '' : 'That does not look like an address. It looks like 192.168.1.23:47777.';
+  if (target) go(target);
+};
+</script>
+</body>
+</html>
